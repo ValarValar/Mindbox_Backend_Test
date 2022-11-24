@@ -1,0 +1,45 @@
+version: '3.9'
+
+services:
+  mindbox_app:
+    container_name: mindbox_app
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    networks:
+      - mindbox_network
+    ports:
+      - "8000:8000"
+    depends_on:
+      mindbox_postgres_db:
+        condition: service_healthy
+
+  mindbox_postgres_db:
+    container_name: mindbox_postgres_db
+    image: postgres:latest
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=mindbox_app
+      - POSTGRES_USER=mindbox_app
+      - POSTGRES_PASSWORD=mindbox_app
+    expose:
+      - 5432
+    ports:
+      - "5432:5432"
+    networks:
+      - mindbox_network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U mindbox_app" ]
+      interval: 5s
+      timeout: 20s
+      retries: 100
+
+
+
+networks:
+  mindbox_network:
+
+volumes:
+  postgres_data:
